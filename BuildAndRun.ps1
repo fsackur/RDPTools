@@ -12,6 +12,7 @@
 $Script = {
     iwr http://scriptlib.dustyfox.uk/Test1.ps1 -UseBasicParsing | iex
     Start-Sleep 2
+    logoff
 }.ToString() -replace '\r' -replace ' +', ' ' -replace '\n', '; '
 
 

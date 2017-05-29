@@ -24,15 +24,13 @@ class MyClass {
 	
 	Connect(address, username, password, script){
 		
-		this.invocation := "powershell -NoProfile -NoExit -Command """ script """{Enter}"
+		; text that will be typed into the runbox
+		this.invocation := "powershell -NoProfile -NoExit -Command """ script """"
+		this.starttime := A_Now
 		
-		;MsgBox, % this.invocation
-		;return
 		; Start the connection attempt with the specified credentials.
 		this.rdp := new RDPConnect(address, username, password, this.SessionEvent.Bind(this))
 		
-		;
-		;Process, Close, Autohotkey.exe
 	}
 	
 	; SessionEvent will be called when something changes about the session connection
@@ -49,20 +47,33 @@ class MyClass {
 			msgbox % "Error : " errorname
 			return
 		}
+		
 		if (hwnd){
-			Sleep 2000								; give time to finish logon
+			
+			; some failures come when you send keys but the desktop isn't accepting input yet
+			; The time from starting logon to getting the notification through RDP that you are logged on is 
+			; correlated to the time before the session will actually accept input
+			;
+			; if we raise the time so far to the power of 0.5 we get a useful-looking curve
+			timetaken := A_Now - this.starttime
+			sleeptime := (timetaken**0.5) * 1000
+			Sleep %sleeptime%						; give time to start accepting input
+
 			this.rdp.SetMaximizedState(1)			; Maximize the RDP window, so keystrokes get sent
 			Sleep 250
-			this.rdp.SendKeys("{LWin down}r{LWin up}")				; Open start menu
+			this.rdp.SendKeys("{LWin down}r{LWin up}")				; Win-R still works on 2012!
 			Sleep 250
 			this.rdp.SendKeys(this.invocation)		; Run PS
+			this.rdp.SendKeys("{Enter}")
 			return
+			
 		} else {
 			Tooltip % "Session ended."
 			Sleep 2000
 			ToolTip
 		}
 		
+		;DIE! DIE! DIE!
 		Sleep 500
 		this.rdp.CloseSession()
 		this.rdp.Close()
