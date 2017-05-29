@@ -8,9 +8,10 @@ Sample script for RDPConnect that demos connecting to a remote machine and issui
 address  = %1%
 username = %2%
 password = %3%
+script   = %4%
 
 mc := new MyClass()
-mc.Connect(address, username, password)
+mc.Connect(address, username, password, script)
 ;return
 
 
@@ -21,11 +22,17 @@ class MyClass {
 		hotkey, F1, % fn
 	}
 	
-	Connect(address, username="", password=""){
+	Connect(address, username, password, script){
+		
+		this.invocation := "powershell -NoProfile -NoExit -Command """ script """{Enter}"
+		
+		;MsgBox, % this.invocation
+		;return
 		; Start the connection attempt with the specified credentials.
-		; Also uses the WaitForDesktopColor option to wait for pixel 0, 0 of the session window to be pure white...
-		; ... this attempts to detect "Ready" state of the remoote machine (As long as the desktop is white!)
-		this.rdp := new RDPConnect(address, username, password, this.SessionEvent.Bind(this)) ;, {WaitForDesktopColor: "0xFFFFFF"})
+		this.rdp := new RDPConnect(address, username, password, this.SessionEvent.Bind(this))
+		
+		;
+		;Process, Close, Autohotkey.exe
 	}
 	
 	; SessionEvent will be called when something changes about the session connection
@@ -48,7 +55,7 @@ class MyClass {
 			Sleep 250
 			this.rdp.SendKeys("{LWin down}r{LWin up}")				; Open start menu
 			Sleep 250
-			this.rdp.SendKeys("powershell -NoProfile -Command ""logoff""{enter}")		; Run PS
+			this.rdp.SendKeys(this.invocation)		; Run PS
 			return
 		} else {
 			Tooltip % "Session ended."
