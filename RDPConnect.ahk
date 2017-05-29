@@ -73,7 +73,7 @@ class RDPConnect {
 		this._LoginAttempts := 0
 		
 		; Launch RDP Client, get PID of new process
-		Run, %a_windir%\Sysnative\mstsc.exe , , , pid
+		Run, %a_windir%\System32\mstsc.exe , , , pid
 		this.pid := pid
 		
 		; Start Timer to watch for this PID creating new windows
